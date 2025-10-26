@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Khuyến mãi - Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+
+    <div style="display: flex;">
+
+        <div id="admin-sidebar-placeholder"></div>
+
+        <main class="admin-main-content">
+            
+            <header>
+                <h1>Quản lý Khuyến mãi (AD-06)</h1>
+                <a href="#" class="btn btn-primary" onclick="alert('Chức năng này cần tạo form khuyến mãi riêng (tương tự form sản phẩm)')">Tạo Khuyến mãi Mới</a>
+            </header>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Danh sách Mã giảm giá / Chương trình</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã (Coupon)</th>
+                            <th>Mô tả</th>
+                            <th>Loại/Giá trị</th>
+                            <th>Bắt đầu</th>
+                            <th>Kết thúc</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promo-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+    
+    </div> <script src="admin-layout.js"></script>
+    <script src="admin-mock-db.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPromotions();
+        });
+
+        function loadPromotions() {
+            const promotions = db.getPromotions();
+            const tableBody = document.getElementById('promo-table-body');
+            tableBody.innerHTML = '';
+
+            promotions.forEach(promo => {
+                const row = document.createElement('tr');
+                row.id = `promo-row-${promo.id}`;
+                
+                const valueFormatted = promo.type === '%' ? `${promo.value}%` : new Intl.NumberFormat('vi-VN').format(promo.value) + 'đ';
+                const statusText = promo.status === 'active' ? '<span style="color: green;">Đang chạy</span>' : '<span style="color: grey;">Hết hạn</span>';
+
+                row.innerHTML = `
+                    <td>${promo.code}</td>
+                    <td>${promo.description}</td>
+                    <td>${valueFormatted}</td>
+                    <td>${promo.start}</td>
+                    <td>${promo.end}</td>
+                    <td>${statusText}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-success">Sửa</button>
+                        <button class="btn btn-accent" onclick="deletePromotion('${promo.id}', '${promo.code}')">Xóa</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function deletePromotion(id, code) {
+            if (confirm(`Bạn có chắc muốn xóa mã "${code}"?`)) {
+                db.deletePromotion(id);
+                loadPromotions();
+            }
+        }
+    </script>
+</body>
+</html>

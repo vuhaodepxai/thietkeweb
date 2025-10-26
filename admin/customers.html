@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Khách hàng - Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+    <div style="display: flex;">
+    
+        <div id="admin-sidebar-placeholder"></div>
+
+        <main class="admin-main-content">
+            
+            <header>
+                <h1>Quản lý Khách hàng (AD-05)</h1>
+            </header>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Danh sách Khách hàng</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên Khách hàng</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Tổng số đơn</th>
+                            <th>Tổng chi tiêu</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customers-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="admin-layout.js"></script>
+    <script src="admin-mock-db.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const customers = db.getCustomers();
+            const tableBody = document.getElementById('customers-table-body');
+            const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+
+            customers.forEach(customer => {
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td>${customer.id}</td>
+                    <td>${customer.name}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.phone}</td>
+                    <td>${customer.totalOrders}</td>
+                    <td>${formatter.format(customer.totalSpent)}</td>
+                `;
+            });
+        });
+    </script>
+</body>
+</html>

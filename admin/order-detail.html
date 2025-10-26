@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết Đơn hàng - Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+    <style>
+        .status-pending { color: orange; font-weight: bold; }
+        .status-processing { color: blue; font-weight: bold; }
+        .status-completed { color: green; font-weight: bold; }
+        /* ... (Thêm các class status khác nếu cần) ... */
+        
+        .order-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+        .order-details, .order-actions { padding: 20px; }
+        .order-details h3 { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 20px; }
+        .order-details p { margin: 10px 0; }
+        .order-details strong { min-width: 150px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div style="display: flex;">
+    
+        <div id="admin-sidebar-placeholder"></div>
+
+        <main class="admin-main-content">
+            
+            <header>
+                <h1 id="order-title">Đang tải chi tiết đơn hàng...</h1>
+                <a href="orders.html" class="btn btn-secondary">Quay lại Danh sách</a>
+            </header>
+            
+            <div class="card order-layout">
+                <div class="order-details">
+                    <h3>Chi tiết Sản phẩm</h3>
+                    <table id="order-items-table">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Đơn giá</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+
+                    <h3>Thông tin Khách hàng</h3>
+                    <div id="customer-info">
+                        </div>
+                </div>
+
+                <div class="order-actions card" style="background-color: #f9f9f9;">
+                    <h3>Trạng thái Đơn hàng</h3>
+                    <p>Trạng thái hiện tại: <strong id="current-status" class="status-pending">...</strong></p>
+                    
+                    <div class="form-group">
+                        <label for="update-status">Cập nhật trạng thái:</label>
+                        <select id="update-status" class="form-group">
+                            <option value="pending">Chờ xác nhận (Pending)</option>
+                            <option value="processing">Đang xử lý (Processing)</option>
+                            <option value="shipped">Đang giao (Shipped)</option>
+                            <option value="completed">Hoàn thành (Completed)</option>
+                            <option value="cancelled">Hủy đơn (Cancelled)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="update-status-btn">Cập nhật</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="admin-layout.js"></script>
+    <script src="admin-mock-db.js"></script>
+    
+    <script>
+        const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+        let currentOrderId = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Lấy ID từ URL
+            const params = new URLSearchParams(window.location.search);
+            currentOrderId = params.get('id');
+
+            if (!currentOrderId) {
+                alert('Không tìm thấy ID đơn hàng!');
+                window.location.href = 'orders.html';
+                return;
+            }
+
+            // 2. Lấy dữ liệu từ DB
+            const order = db.getOrderById(currentOrderId);
+
+            if (!order) {
+                alert('Không tìm thấy đơn hàng!');
+                window.location.href = 'orders.html';
+                return;
+            }
+
+            // 3. Đổ dữ liệu ra
+            document.getElementById('order-title').innerText = `Chi tiết Đơn hàng: #${order.id}`;
+            document.getElementById('current-status').innerText = order.status;
+            document.getElementById('current-status').className = `status-${order.status}`;
+            document.getElementById('update-status').value = order.status;
+
+            // 4. Thông tin khách
+            document.getElementById('customer-info').innerHTML = `
+                <p><strong>Tên Khách hàng:</strong> ${order.customerName}</p>
+                <p><strong>Địa chỉ giao:</strong> ${order.shippingAddress}</p>
+                <p><strong>Thanh toán:</strong> ${order.paymentMethod}</p>
+            `;
+
+            // 5. Danh sách sản phẩm
+            const itemsTable = document.getElementById('order-items-table').getElementsByTagName('tbody')[0];
+            order.items.forEach(item => {
+                const row = itemsTable.insertRow();
+                row.innerHTML = `
+                    <td>${item.name} (ID: ${item.productId})</td>
+                    <td>${item.quantity}</td>
+                    <td>${formatter.format(item.price)}</td>
+                    <td>${formatter.format(item.price * item.quantity)}</td>
+                `;
+            });
+            // Thêm hàng Tổng cộng
+            const totalRow = itemsTable.insertRow();
+            totalRow.innerHTML = `<td colspan="3" style="text-align: right; font-weight: bold;">TỔNG CỘNG</td><td style="font-weight: bold; color: var(--accent);">${formatter.format(order.total)}</td>`;
+
+            // 6. Gán sự kiện cho nút Cập nhật
+            document.getElementById('update-status-btn').addEventListener('click', updateStatus);
+        });
+
+        function updateStatus() {
+            const newStatus = document.getElementById('update-status').value;
+            if (confirm(`Bạn có chắc muốn cập nhật trạng thái đơn hàng #${currentOrderId} thành "${newStatus}"?`)) {
+                
+                // Cập nhật trong DB giả
+                db.updateOrderStatus(currentOrderId, newStatus);
+                
+                // Cập nhật giao diện
+                document.getElementById('current-status').innerText = newStatus;
+                document.getElementById('current-status').className = `status-${newStatus}`;
+                
+                alert('Cập nhật trạng thái thành công!');
+            }
+        }
+    </script>
+</body>
+</html>

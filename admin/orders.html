@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Đơn hàng - Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+    <style>
+        .status-pending { color: orange; font-weight: bold; }
+        .status-processing { color: blue; font-weight: bold; }
+        .status-completed { color: green; font-weight: bold; }
+        .status-shipped { color: purple; font-weight: bold; }
+        .status-cancelled { color: red; text-decoration: line-through; }
+    </style>
+</head>
+<body>
+    <div style="display: flex;">
+    
+        <div id="admin-sidebar-placeholder"></div>
+
+        <main class="admin-main-content">
+            
+            <header>
+                <h1>Quản lý Đơn hàng (AD-04)</h1>
+            </header>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Danh sách Đơn hàng</h2>
+                </div>
+                <div class="filters" style="padding: 10px 0;">
+                    <label>Lọc theo trạng thái: </label>
+                    <select id="status-filter" onchange="loadOrders()">
+                        <option value="all">Tất cả</option>
+                        <option value="pending">Chờ xác nhận (Pending)</option>
+                        <option value="processing">Đang xử lý (Processing)</option>
+                        <option value="shipped">Đang giao (Shipped)</option>
+                        <option value="completed">Hoàn thành (Completed)</option>
+                        <option value="cancelled">Đã hủy (Cancelled)</option>
+                    </select>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã ĐH</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="admin-layout.js"></script>
+    <script src="admin-mock-db.js"></script>
+    
+    <script>
+        const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOrders();
+        });
+
+        function loadOrders() {
+            const allOrders = db.getOrders();
+            const tableBody = document.getElementById('orders-table-body');
+            const filter = document.getElementById('status-filter').value;
+            
+            tableBody.innerHTML = ''; // Xóa cũ
+
+            const filteredOrders = allOrders.filter(order => {
+                return filter === 'all' || order.status === filter;
+            });
+            
+            // Sắp xếp mới nhất lên đầu
+            filteredOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            filteredOrders.forEach(order => {
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.customerName}</td>
+                    <td>${new Date(order.date).toLocaleString('vi-VN')}</td>
+                    <td>${formatter.format(order.total)}</td>
+                    <td><span class="status-${order.status}">${order.status}</span></td>
+                    <td class="action-buttons">
+                        <a href="order-detail.html?id=${order.id}" class="btn btn-success">Xem</a>
+                    </td>
+                `;
+            });
+
+            if (filteredOrders.length === 0) {
+                 tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Không có đơn hàng nào.</td></tr>';
+            }
+        }
+    </script>
+</body>
+</html>

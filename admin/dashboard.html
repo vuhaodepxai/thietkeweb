@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+    <style>
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .stat-card {
+            background-color: var(--secondary);
+            color: var(--white);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .stat-card h3 {
+            font-size: 18px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .stat-card p {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        /* -- CSS MỚI CHO BIỂU ĐỒ -- */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr; /* Biểu đồ tròn nhỏ, biểu đồ cột lớn */
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .chart-container {
+            padding: 20px;
+            position: relative;
+            /* Đặt chiều cao cố định để biểu đồ hiển thị đúng */
+            height: 400px; 
+        }
+
+        .chart-container canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div style="display: flex;">
+    
+        <div id="admin-sidebar-placeholder"></div>
+
+        <main class="admin-main-content">
+            
+            <header>
+                <h1>Dashboard (AD-09)</h1>
+            </header>
+            
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <h3>Tổng Doanh thu (Completed)</h3>
+                    <p id="stat-revenue">0đ</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Đơn hàng mới (Pending)</h3>
+                    <p id="stat-new-orders">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Tổng số Khách hàng</h3>
+                    <p id="stat-customers">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Tổng số Sản phẩm</h3>
+                    <p id="stat-products">0</p>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="card chart-container">
+                    <h3 style="text-align: center;">Tỷ lệ Đơn hàng</h3>
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+                <div class="card chart-container">
+                    <h3 style="text-align: center;">Doanh thu (Đơn hàng đã Hoàn thành)</h3>
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card" style="margin-top: 30px;">
+                <div class="card-header">
+                    <h2>Đơn hàng gần đây</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã ĐH</th>
+                            <th>Khách hàng</th>
+                            <th>Ngày đặt</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-orders-table">
+                        </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="admin-layout.js"></script>
+    <script src="admin-mock-db.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Định nghĩa màu sắc từ CSS để dùng trong Chart
+        const chartColors = {
+            primary: '#3CE0DD',
+            secondary: '#0E3D40',
+            accent: '#E03A3C',
+            success: '#3DDC84',
+            warning: '#FFB347',
+            grey: '#E0E0E0'
+        };
+
+        const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Lấy dữ liệu từ DB giả
+            const orders = db.getOrders();
+            const customers = db.getCustomers();
+            const products = db.getProducts();
+
+            // 1. Tính toán Thống kê nhanh (Giữ nguyên)
+            updateStatCards(orders, customers, products);
+
+            // 2. Hiển thị Đơn hàng gần đây (Giữ nguyên)
+            updateRecentOrders(orders);
+
+            // 3. VẼ BIỂU ĐỒ MỚI
+            renderOrderStatusChart(orders);
+            renderRevenueChart(orders);
+        });
+
+        function updateStatCards(orders, customers, products) {
+            const totalRevenue = orders
+                .filter(o => o.status === 'completed')
+                .reduce((sum, o) => sum + o.total, 0);
+            
+            const newOrdersCount = orders.filter(o => o.status === 'pending').length;
+
+            document.getElementById('stat-revenue').innerText = formatter.format(totalRevenue);
+            document.getElementById('stat-new-orders').innerText = newOrdersCount;
+            document.getElementById('stat-customers').innerText = customers.length;
+            document.getElementById('stat-products').innerText = products.length;
+        }
+
+        function updateRecentOrders(orders) {
+            const tableBody = document.getElementById('recent-orders-table');
+            tableBody.innerHTML = ''; // Xóa cũ
+            const recentOrders = orders.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+
+            recentOrders.forEach(order => {
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td><a href="order-detail.html?id=${order.id}">${order.id}</a></td>
+                    <td>${order.customerName}</td>
+                    <td>${new Date(order.date).toLocaleDateString('vi-VN')}</td>
+                    <td>${formatter.format(order.total)}</td>
+                    <td><span class="status-${order.status}">${order.status}</span></td>
+                `;
+            });
+        }
+
+        // --- HÀM MỚI ĐỂ VẼ BIỂU ĐỒ ---
+
+        /**
+         * 1. Biểu đồ Tròn: Tỷ lệ Trạng thái Đơn hàng
+         */
+        function renderOrderStatusChart(orders) {
+            const ctx = document.getElementById('orderStatusChart').getContext('2d');
+            
+            // Đếm số lượng đơn theo từng trạng thái
+            const statusCounts = {
+                pending: 0,
+                processing: 0,
+                shipped: 0,
+                completed: 0,
+                cancelled: 0
+            };
+            
+            orders.forEach(order => {
+                if(statusCounts.hasOwnProperty(order.status)) {
+                    statusCounts[order.status]++;
+                }
+            });
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Chờ xác nhận', 'Đang xử lý', 'Đang giao', 'Hoàn thành', 'Đã hủy'],
+                    datasets: [{
+                        label: 'Số lượng đơn',
+                        data: [
+                            statusCounts.pending,
+                            statusCounts.processing,
+                            statusCounts.shipped,
+                            statusCounts.completed,
+                            statusCounts.cancelled
+                        ],
+                        backgroundColor: [
+                            chartColors.warning, // pending
+                            chartColors.primary, // processing
+                            '#8A2BE2',          // shipped (màu tím)
+                            chartColors.success, // completed
+                            chartColors.accent    // cancelled
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * 2. Biểu đồ Cột: Doanh thu theo Ngày (chỉ tính đơn 'completed')
+         */
+        function renderRevenueChart(orders) {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            
+            // Xử lý dữ liệu: Gom doanh thu theo ngày
+            const revenueByDay = {}; // Dạng: {'20/10/2025': 7490000, '21/10/2025': 0}
+            
+            const completedOrders = orders.filter(o => o.status === 'completed');
+
+            completedOrders.forEach(order => {
+                const date = new Date(order.date).toLocaleDateString('vi-VN');
+                if (!revenueByDay[date]) {
+                    revenueByDay[date] = 0;
+                }
+                revenueByDay[date] += order.total;
+            });
+
+            // Tách labels và data ra
+            const labels = Object.keys(revenueByDay);
+            const data = Object.values(revenueByDay);
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu (VND)',
+                        data: data,
+                        backgroundColor: chartColors.primary,
+                        borderColor: chartColors.secondary,
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                // Định dạng trục Y (trục tiền)
+                                callback: function(value, index, values) {
+                                    return value / 1000000 + ' Tr'; // Hiển thị 10,000,000 -> 10 Tr
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // Ẩn legend vì chỉ có 1 bộ dữ liệu
+                        },
+                        tooltip: {
+                            // Định dạng tooltip khi hover
+                            callbacks: {
+                                label: function(context) {
+                                    return formatter.format(context.parsed.y);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

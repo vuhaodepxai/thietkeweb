@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Tương tác - Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
+    <style>
+        .interaction-item { border: 1px solid var(--grey-border); border-radius: 5px; padding: 15px; margin-bottom: 15px; }
+        .interaction-item p { margin-bottom: 10px; }
+        .interaction-item .meta { font-size: 14px; color: #555; margin-bottom: 10px; }
+        .interaction-actions { margin-top: 10px; }
+        .answer-form { display: none; margin-top: 15px; }
+        .interaction-item.approved { border-left: 5px solid var(--success); background-color: #f0fff8; }
+        .interaction-item.answered { border-left: 5px solid var(--primary); background-color: #f0fefe; }
+        .interaction-item .answer-display { background: #f1f1f1; padding: 10px; margin-top: 10px; border-radius: 5px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div style="display: flex;">
+
+        <div id="admin-sidebar-placeholder"></div>
+
+        <main class="admin-main-content">
+            
+            <header>
+                <h1>Quản lý Tương tác (AD-08)</h1>
+            </header>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Duyệt Đánh giá sản phẩm</h2>
+                    </div>
+                    <div id="reviews-container"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Duyệt Câu hỏi (Q&A)</h2>
+                    </div>
+                    <div id="qa-container"></div>
+                </div>
+            </div>
+        </main>
+    
+    </div> <script src="admin-layout.js"></script>
+    <script src="admin-mock-db.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInteractions();
+        });
+
+        function loadInteractions() {
+            const interactions = db.getInteractions();
+            const reviewsContainer = document.getElementById('reviews-container');
+            const qaContainer = document.getElementById('qa-container');
+            
+            reviewsContainer.innerHTML = '';
+            qaContainer.innerHTML = '';
+
+            interactions.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'interaction-item';
+                itemDiv.id = `interaction-${item.id}`;
+
+                if (item.type === 'review') {
+                    const stars = '⭐️'.repeat(item.rating) + '☆'.repeat(5 - item.rating);
+                    itemDiv.innerHTML = `
+                        <p><strong>Người dùng:</strong> ${item.user} (SP: ${item.product})</p>
+                        <p><strong>Đánh giá:</strong> ${stars}</p>
+                        <p><i>"${item.content}"</i></p>
+                        <div class="interaction-actions">
+                            <button class="btn btn-success" onclick="approveReview('${item.id}')">Duyệt (Hiển thị)</button>
+                            <button class="btn btn-accent" onclick="deleteInteraction('${item.id}')">Xóa</button>
+                        </div>
+                    `;
+                    if (item.status === 'approved') {
+                        itemDiv.classList.add('approved');
+                        itemDiv.querySelector('.interaction-actions').innerHTML = '<p style="color: green;">Đã duyệt.</p>';
+                    }
+                    reviewsContainer.appendChild(itemDiv);
+
+                } else if (item.type === 'qa') {
+                    itemDiv.innerHTML = `
+                        <p><strong>Người dùng:</strong> ${item.user} (SP: ${item.product})</p>
+                        <p><strong>Câu hỏi:</strong> <i>"${item.content}"</i></p>
+                        <div class="interaction-actions">
+                            <button class="btn btn-primary" onclick="toggleAnswerForm('${item.id}')">Trả lời</button>
+                            <button class="btn btn-accent" onclick="deleteInteraction('${item.id}')">Xóa</button>
+                        </div>
+                        <form class="answer-form" id="form-${item.id}" onsubmit="submitAnswer(event, '${item.id}')">
+                            <textarea rows="3" placeholder="Nhập câu trả lời của bạn..." required></textarea>
+                            <button type="submit" class="btn btn-success" style="margin-top: 5px;">Gửi trả lời</button>
+                        </form>
+                    `;
+                    if (item.status === 'answered' && item.answer) {
+                        itemDiv.classList.add('answered');
+                        itemDiv.querySelector('.interaction-actions').remove(); 
+                        itemDiv.querySelector('.answer-form').remove(); 
+                        const answerDiv = document.createElement('div');
+                        answerDiv.className = 'answer-display';
+                        answerDiv.innerHTML = `<strong>Admin đã trả lời:</strong> ${item.answer}`;
+                        itemDiv.appendChild(answerDiv);
+                    }
+                    qaContainer.appendChild(itemDiv);
+                }
+            });
+        }
+        
+        function approveReview(id) {
+            db.updateInteractionStatus(id, 'approved');
+            const itemDiv = document.getElementById(`interaction-${id}`);
+            itemDiv.classList.add('approved');
+            itemDiv.querySelector('.interaction-actions').innerHTML = '<p style="color: green;">Đã duyệt.</p>';
+        }
+
+        function toggleAnswerForm(id) {
+            const form = document.getElementById(`form-${id}`);
+            form.style.display = (form.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function submitAnswer(event, id) {
+            event.preventDefault();
+            const form = document.getElementById(`form-${id}`);
+            const answer = form.querySelector('textarea').value;
+            
+            if (answer) {
+                db.updateInteractionStatus(id, 'answered', answer);
+                loadInteractions();
+            }
+        }
+        
+        function deleteInteraction(id) {
+            if (confirm('Bạn có chắc muốn xóa tương tác này?')) {
+                const itemDiv = document.getElementById(`interaction-${id}`);
+                itemDiv.style.opacity = '0.5';
+                itemDiv.innerHTML += '<p style="color: red;">ĐÃ XÓA (DEMO)</p>';
+                alert('Đã xóa (demo)!');
+            }
+        }
+    </script>
+</body>
+</html>
