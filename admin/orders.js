@@ -1,12 +1,16 @@
 /* ---- 
    LOGIC RIÊNG CỦA TRANG ORDERS
+   (Đã thêm icon Xem <0xF0><0x9F><0x91><0x8F>️)
 ---- */
 
 const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
 
 document.addEventListener('DOMContentLoaded', function() {
     // Gán sự kiện cho bộ lọc
-    document.getElementById('status-filter').addEventListener('change', loadOrders);
+    const statusFilter = document.getElementById('status-filter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', loadOrders);
+    }
     
     // Tải lần đầu
     loadOrders();
@@ -15,7 +19,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function loadOrders() {
     const allOrders = db.getOrders();
     const tableBody = document.getElementById('orders-table-body');
-    const filter = document.getElementById('status-filter').value;
+    const filterSelect = document.getElementById('status-filter');
+    const filter = filterSelect ? filterSelect.value : 'all'; // Lấy giá trị lọc
+    
+    if (!tableBody) {
+        console.error("Không tìm thấy tbody với ID 'orders-table-body'");
+        return; 
+    }
     
     tableBody.innerHTML = ''; // Xóa cũ
 
@@ -27,7 +37,7 @@ function loadOrders() {
     filteredOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (filteredOrders.length === 0) {
-         tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Không có đơn hàng nào.</td></tr>';
+         tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Không có đơn hàng nào khớp.</td></tr>';
          return;
     }
 
@@ -40,8 +50,21 @@ function loadOrders() {
             <td>${formatter.format(order.total)}</td>
             <td><span class="status-${order.status}">${order.status}</span></td>
             <td class="action-buttons">
-                <a href="order-detail.html?id=${order.id}" class="btn btn-success">Xem</a>
-            </td>
+                <a href="order-detail.html?id=${order.id}" class="btn btn-success btn-small" title="Xem chi tiết đơn hàng">
+                    <i class="fas fa-eye"></i> Xem
+                </a>
+                </td>
         `;
     });
 }
+
+// (Optional) Bạn có thể thêm hàm cancelOrder nếu muốn
+/*
+function cancelOrder(orderId) {
+    if (confirm(`Bạn có chắc muốn HỦY đơn hàng ${orderId}? Hành động này không thể hoàn tác.`)) {
+        db.updateOrderStatus(orderId, 'cancelled');
+        loadOrders(); // Tải lại danh sách
+        alert(`Đã hủy đơn hàng ${orderId}.`);
+    }
+}
+*/

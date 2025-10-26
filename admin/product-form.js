@@ -138,19 +138,19 @@ function addVariantRow(name = '', value = '', price = 0, stock = 0) {
     const newItem = document.createElement('div');
     newItem.className = 'variant-item';
     
-    // Thêm 4 input: name, value, price, stock
-    // ĐÃ THÊM PLACEHOLDER RÕ RÀNG
+    // SỬA LẠI NÚT XÓA (thêm icon, bỏ chữ)
     newItem.innerHTML = `
         <input type="text" placeholder="Tên (ví dụ: Màu)" class="variant-name" value="${name}">
         <input type="text" placeholder="Giá trị (ví dụ: Đen)" class="variant-value" value="${value}">
         <input type="number" placeholder="Giá" class="variant-price" value="${price || 0}">
         <input type="number" placeholder="Tồn kho" class="variant-stock" value="${stock || 0}">
-        <button type="button" class="btn btn-accent btn-small remove-variant-btn">Xóa</button>
+        <button type="button" class="btn btn-accent btn-small remove-variant-btn">
+            <i class="fas fa-trash-alt"></i>
+        </button>
     `;
     
     container.appendChild(newItem);
 }
-
 /**
  * Thu thập và Lưu toàn bộ dữ liệu form (NÂNG CẤP)
  * @param {Event} event - Sự kiện 'submit'

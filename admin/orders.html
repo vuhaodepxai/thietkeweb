@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Đơn hàng - Admin</title>
     <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         .status-pending { color: orange; font-weight: bold; }
         .status-processing { color: blue; font-weight: bold; }
@@ -30,7 +31,7 @@
                 </div>
                 <div class="filters" style="padding: 10px 0;">
                     <label>Lọc theo trạng thái: </label>
-                    <select id="status-filter" onchange="loadOrders()">
+                    <select id="status-filter"> 
                         <option value="all">Tất cả</option>
                         <option value="pending">Chờ xác nhận (Pending)</option>
                         <option value="processing">Đang xử lý (Processing)</option>
@@ -58,48 +59,9 @@
         </main>
     </div>
 
-    <script src="admin-layout.js"></script>
-    <script src="admin-mock-db.js"></script>
-    
-    <script>
-        const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
+    <script src="admin-layout.js" defer></script>
+    <script src="admin-mock-db.js" defer></script>
+    <script src="orders.js" defer></script> 
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadOrders();
-        });
-
-        function loadOrders() {
-            const allOrders = db.getOrders();
-            const tableBody = document.getElementById('orders-table-body');
-            const filter = document.getElementById('status-filter').value;
-            
-            tableBody.innerHTML = ''; // Xóa cũ
-
-            const filteredOrders = allOrders.filter(order => {
-                return filter === 'all' || order.status === filter;
-            });
-            
-            // Sắp xếp mới nhất lên đầu
-            filteredOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            filteredOrders.forEach(order => {
-                const row = tableBody.insertRow();
-                row.innerHTML = `
-                    <td>${order.id}</td>
-                    <td>${order.customerName}</td>
-                    <td>${new Date(order.date).toLocaleString('vi-VN')}</td>
-                    <td>${formatter.format(order.total)}</td>
-                    <td><span class="status-${order.status}">${order.status}</span></td>
-                    <td class="action-buttons">
-                        <a href="order-detail.html?id=${order.id}" class="btn btn-success">Xem</a>
-                    </td>
-                `;
-            });
-
-            if (filteredOrders.length === 0) {
-                 tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Không có đơn hàng nào.</td></tr>';
-            }
-        }
-    </script>
 </body>
 </html>

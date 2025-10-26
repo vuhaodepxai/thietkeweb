@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Danh mục - Admin</title>
     <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
 
@@ -12,7 +13,7 @@
 
         <div id="admin-sidebar-placeholder"></div>
 
-        <main class="admin-main-content" style="display: flex; gap: 30px; flex-grow: 1;">
+        <main class="admin-main-content admin-layout-flex-stack" style="flex-grow: 1;">
 
             <div style="flex: 1;">
                 <header>
@@ -33,11 +34,15 @@
                             <label for="cat-parent">Danh mục cha (nếu có)</label>
                             <select id="cat-parent">
                                 <option value="null">-- Không có --</option>
-                            </select>
+                                </select>
                         </div>
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Lưu Danh mục</button>
-                            <button type="button" class="btn btn-secondary" onclick="resetForm()">Hủy</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Lưu Danh mục
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                <i class="fas fa-times"></i> Hủy
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -48,109 +53,28 @@
                     <div class="card-header">
                         <h2>Danh sách Danh mục</h2>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Tên Danh mục</th>
-                                <th>Danh mục cha</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody id="category-table-body">
-                            </tbody>
-                    </table>
+                     <div class="table-wrapper"> <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên Danh mục</th>
+                                    <th>Danh mục cha</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="category-table-body">
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </main>
     
-    </div> <script src="admin-layout.js"></script>
-    <script src="admin-mock-db.js"></script>
-    
-    <script>
-        let allCategories = []; 
+    </div> 
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadCategoriesAndDropdown();
-        });
+    <script src="admin-layout.js" defer></script>
+    <script src="admin-mock-db.js" defer></script>
+    <script src="categories.js" defer></script> 
 
-        function loadCategoriesAndDropdown() {
-            allCategories = db.getCategories();
-            const tableBody = document.getElementById('category-table-body');
-            const parentSelect = document.getElementById('cat-parent');
-
-            tableBody.innerHTML = '';
-            parentSelect.innerHTML = '<option value="null">-- Không có --</option>';
-
-            if (allCategories.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Chưa có danh mục.</td></tr>';
-                return;
-            }
-            
-            const categoryMap = new Map(allCategories.map(c => [c.id, c.name]));
-
-            allCategories.forEach(cat => {
-                const row = document.createElement('tr');
-                row.id = `cat-row-${cat.id}`;
-                const parentName = cat.parentId ? categoryMap.get(cat.parentId) : '-';
-                
-                row.innerHTML = `
-                    <td>${cat.id}</td>
-                    <td>${cat.name}</td>
-                    <td>${parentName}</td>
-                    <td class="action-buttons">
-                        <button class="btn btn-success" onclick="editCategory('${cat.id}')">Sửa</button>
-                        <button class="btn btn-accent" onclick="deleteCategory('${cat.id}', '${cat.name}')">Xóa</button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-                parentSelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
-            });
-        }
-
-        document.getElementById('category-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const categoryData = {
-                id: document.getElementById('category-id').value,
-                name: document.getElementById('cat-name').value,
-                parentId: document.getElementById('cat-parent').value === 'null' ? null : document.getElementById('cat-parent').value
-            };
-
-            if (categoryData.id === 'new') {
-                categoryData.id = null;
-            }
-
-            db.saveCategory(categoryData);
-            alert(`Đã lưu danh mục "${categoryData.name}"!`);
-            
-            resetForm();
-            loadCategoriesAndDropdown(); 
-        });
-
-        function editCategory(id) {
-            const category = allCategories.find(c => c.id === id);
-            if (category) {
-                document.getElementById('category-id').value = category.id;
-                document.getElementById('cat-name').value = category.name;
-                document.getElementById('cat-parent').value = category.parentId || 'null';
-                document.getElementById('category-form-title').innerText = `Sửa Danh mục (ID: ${id})`;
-                window.scrollTo(0, 0); 
-            }
-        }
-
-        function deleteCategory(id, name) {
-            if (confirm(`Bạn có chắc muốn xóa danh mục "${name}"?`)) {
-                db.deleteCategory(id);
-                loadCategoriesAndDropdown(); 
-            }
-        }
-
-        function resetForm() {
-            document.getElementById('category-form').reset();
-            document.getElementById('category-id').value = 'new';
-            document.getElementById('category-form-title').innerText = 'Thêm Danh mục';
-        }
-    </script>
 </body>
 </html>

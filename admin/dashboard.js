@@ -1,11 +1,12 @@
 /* ---- 
    LOGIC RIÊNG CỦA TRANG DASHBOARD
+   (Đã sửa lỗi màu sắc cho khớp với CSS)
 ---- */
 
-// Định nghĩa màu sắc từ CSS để dùng trong Chart
+// Định nghĩa màu sắc từ CSS (đã sửa cho đúng)
 const chartColors = {
-    primary: '#3CE0DD',
-    secondary: '#0E3D40',
+    primary: '#cadbd4',     // Màu xanh nhạt (giống --primary trong css)
+    secondary: '#2a4dfc',   // Màu xanh dương (giống --secondary trong css)
     accent: '#E03A3C',
     success: '#3DDC84',
     warning: '#FFB347',
@@ -14,7 +15,7 @@ const chartColors = {
 
 const formatter = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' });
 
-// Chạy code khi DOM đã sẵn sàng (dùng defer nên không cần DOMContentLoaded)
+// Code sẽ chạy sau khi 'defer' tải xong
 try {
     const orders = db.getOrders();
     const customers = db.getCustomers();
@@ -26,13 +27,16 @@ try {
     renderRevenueChart(orders);
 } catch (e) {
     console.error("Lỗi khi tải dữ liệu Dashboard:", e);
-    alert("Không thể tải dữ liệu Dashboard. Vui lòng reset DB (db.resetDatabase()) và thử lại.");
+    console.error("Hãy kiểm tra xem 'admin-mock-db.js' đã được tải đúng chưa.");
 }
 
 
 // --- Định nghĩa các hàm ---
 
 function updateStatCards(orders, customers, products) {
+    // Kiểm tra nếu orders, customers, products không tồn tại (lỗi db)
+    if (!orders || !customers || !products) return; 
+
     const totalRevenue = orders
         .filter(o => o.status === 'completed')
         .reduce((sum, o) => sum + o.total, 0);
@@ -46,11 +50,17 @@ function updateStatCards(orders, customers, products) {
 }
 
 function updateRecentOrders(orders) {
+    if (!orders) return;
     const tableBody = document.getElementById('recent-orders-table');
-    if (!tableBody) return; // Thoát nếu không tìm thấy
+    if (!tableBody) return;
     
-    tableBody.innerHTML = ''; // Xóa cũ
+    tableBody.innerHTML = '';
     const recentOrders = [...orders].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+
+    if (recentOrders.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Chưa có đơn hàng nào.</td></tr>';
+        return;
+    }
 
     recentOrders.forEach(order => {
         const row = tableBody.insertRow();
@@ -65,12 +75,11 @@ function updateRecentOrders(orders) {
 }
 
 function renderOrderStatusChart(orders) {
+    if (!orders) return;
     const ctx = document.getElementById('orderStatusChart')?.getContext('2d');
-    if (!ctx) return; // Thoát nếu không có canvas
+    if (!ctx) return;
     
-    const statusCounts = {
-        pending: 0, processing: 0, shipped: 0, completed: 0, cancelled: 0
-    };
+    const statusCounts = { pending: 0, processing: 0, shipped: 0, completed: 0, cancelled: 0 };
     
     orders.forEach(order => {
         if(statusCounts.hasOwnProperty(order.status)) {
@@ -92,7 +101,11 @@ function renderOrderStatusChart(orders) {
                     statusCounts.cancelled
                 ],
                 backgroundColor: [
-                    chartColors.warning, chartColors.primary, '#8A2BE2', chartColors.success, chartColors.accent
+                    chartColors.warning, // pending
+                    chartColors.secondary, // processing (Sửa thành màu xanh dương)
+                    '#8A2BE2',          // shipped (màu tím)
+                    chartColors.success, // completed
+                    chartColors.accent    // cancelled
                 ],
                 borderColor: '#fff',
                 borderWidth: 2
@@ -107,6 +120,7 @@ function renderOrderStatusChart(orders) {
 }
 
 function renderRevenueChart(orders) {
+    if (!orders) return;
     const ctx = document.getElementById('revenueChart')?.getContext('2d');
     if (!ctx) return;
     
@@ -129,8 +143,8 @@ function renderRevenueChart(orders) {
             datasets: [{
                 label: 'Doanh thu (VND)',
                 data: data,
-                backgroundColor: chartColors.primary,
-                borderColor: chartColors.secondary,
+                backgroundColor: chartColors.primary, // Sửa thành màu xanh nhạt
+                borderColor: chartColors.secondary, // Sửa thành màu xanh dương
                 borderWidth: 1,
                 borderRadius: 5
             }]

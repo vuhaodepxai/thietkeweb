@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Sản phẩm - Admin</title>
     <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
 
@@ -15,35 +16,53 @@
         <main class="admin-main-content">
             
             <header>
-                <h1>Quản lý Sản phẩm (AD-02)</h1>
-                <a href="product-form.html?id=new" class="btn btn-primary">Thêm Sản phẩm Mới</a>
+                <h1>Quản lý Sản phẩm </h1>
+                  <a href="product-form.html?id=new" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Thêm Sản phẩm Mới
+</a>  
             </header>
 
             <div class="card">
                 <div class="filters" style="display: flex; gap: 15px; margin-bottom: 20px;">
-                    <input type="text" placeholder="Tìm kiếm theo tên..." style="flex-grow: 1; padding: 10px; border-radius: 5px; border: 1px solid var(--grey-border);">
-                    <select style="padding: 10px; border-radius: 5px; border: 1px solid var(--grey-border);">
-                        <option value="">Lọc theo danh mục</option>
-                    </select>
+                    <input 
+                        type="text" 
+                        id="search-input" placeholder="Tìm kiếm theo tên sản phẩm..." 
+                        style="flex-grow: 1; padding: 10px; border-radius: 5px; border: 1px solid var(--grey-border);">
+                    <select 
+                        id="category-filter" style="padding: 10px; border-radius: 5px; border: 1px solid var(--grey-border); min-width: 180px;">
+                        <option value="">-- Tất cả Danh mục --</option>
+                        </select>
                 </div>
+                <table>
+                    </table>
+            </div>
 
                 <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                          <th>Tên Sản phẩm</th>
-                            <th>Giá (Gốc)</th>
-                            <th>Tồn kho (Gốc)</th>
-                            <th>Danh mục [AD-03]</th>
-                            <th>Số Biến thể</th> <th>Hành động</th> </tr>
-                    </thead>
+                 <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên Sản phẩm</th>
+                        <th>Giá (Gốc)</th>
+                        <th>Tồn kho (Tổng)</th> <th>Danh mục</th>
+                        <th>Hành động</th> </tr>
+                </thead>
+                <tbody id="product-table-body">
+                    </tbody>
+                <tbody id="product-table-body">
+                    </tbody>
                     <tbody id="product-table-body">
                         </tbody>
                 </table>
             </div>
         </main>
     </div> 
-
+<div id="variant-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closeVariantModal()">×</button>
+            <h2 id="modal-product-name">Chi tiết Biến thể</h2>
+            <div id="modal-variant-details">
+                </div>
+        </div>
     <script src="admin-layout.js" defer></script>
     <script src="admin-mock-db.js" defer></script>
 

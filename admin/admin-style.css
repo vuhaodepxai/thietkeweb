@@ -129,6 +129,16 @@ header h1 {
 }
 .btn:hover {
     opacity: 0.85;
+    scale: 1.05;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+.btn:active {
+    /* Khi đang click (active), nhấn nút xuống */
+    transform: translateY(1px);
+    /* Giảm độ sáng và bóng mờ, tạo cảm giác bị nhấn */
+    opacity: 1;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 /* (Giữ nguyên các màu .btn-primary, .btn-accent, .btn-success...) */
 .btn-primary { background-color: var(--primary); color: var(--secondary); }
@@ -184,7 +194,23 @@ table .action-buttons .btn { margin-right: 5px; padding: 5px 10px; font-size: 14
     font-size: 16px;
 }
 .form-group textarea { min-height: 120px; resize: vertical; }
-.form-actions { margin-top: 25px; }
+.form-actions {
+    margin-top: 25px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center; 
+}
+
+/* --- THÊM KHỐI MỚI NÀY Ở DƯỚI --- */
+.form-actions .btn {
+    /* Đặt chiều rộng tối thiểu cho các nút */
+    min-width: 180px; 
+    
+    /* Căn giữa text & icon bên trong nút (cho đẹp) */
+    text-align: center;
+    justify-content: center; /* (Nếu nút cũng là flex) */
+}
 
 /* 4. Lớp layout (utility classes) MỚI */
 /* Lớp này dùng cho `product-form.html` */
@@ -321,8 +347,11 @@ table .action-buttons .btn { margin-right: 5px; padding: 5px 10px; font-size: 14
         margin-bottom: 10px;
     }
     .form-actions {
+
         display: flex;
+
         flex-direction: column;
+}
     }
     .form-actions .btn-secondary {
         /* Đảo thứ tự trên mobile (nút Hủy lên trước) */
@@ -436,4 +465,118 @@ table .action-buttons .btn { margin-right: 5px; padding: 5px 10px; font-size: 14
     .variant-item .remove-variant-btn {
         grid-column: 1 / -1; /* Nút xóa chiếm cả hàng */
     }
+}
+/* ---- 
+   THÊM VÀO CUỐI FILE ADMIN-STYLE.CSS
+   CSS cho Popup Modal Biến thể
+---- */
+
+.modal-overlay {
+    display: none; /* Ẩn mặc định */
+    position: fixed; /* Giữ cố định */
+    z-index: 1000; /* Nằm trên cùng */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Cho phép cuộn nếu nội dung dài */
+    background-color: rgba(0,0,0,0.6); /* Nền mờ màu đen */
+    
+    /* Căn giữa nội dung modal */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Thêm class 'active' bằng JS để hiện modal */
+.modal-overlay.active {
+    display: flex; 
+}
+
+.modal-content {
+    background-color: #fefefe; /* Nền trắng */
+    margin: auto; /* Tự động căn giữa */
+    padding: 30px;
+    border: 1px solid #888;
+    width: 80%; /* Chiếm 80% chiều rộng */
+    max-width: 600px; /* Chiều rộng tối đa */
+    border-radius: 8px;
+    position: relative; /* Để định vị nút đóng */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: fadeIn 0.3s; /* Hiệu ứng mờ dần (tùy chọn) */
+}
+
+/* Hiệu ứng mờ dần */
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+/* Nút đóng (X) */
+.modal-close-btn {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.modal-close-btn:hover,
+.modal-close-btn:focus {
+    color: black;
+    text-decoration: none;
+}
+
+/* Tiêu đề modal */
+#modal-product-name {
+    margin-top: 0;
+    color: var(--secondary);
+    border-bottom: 1px solid var(--grey-border);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+/* Định dạng bảng chi tiết biến thể bên trong modal */
+#modal-variant-details table {
+    width: 100%;
+    margin-top: 0; /* Ghi đè margin mặc định của table */
+    min-width: unset; /* Ghi đè min-width mặc định */
+}
+#modal-variant-details th, 
+#modal-variant-details td {
+    white-space: normal; /* Cho phép chữ xuống dòng */
+    padding: 8px 10px; /* Giảm padding cho gọn */
+}/* ---- 
+   THÊM VÀO CUỐI FILE ADMIN-STYLE.CSS
+   CSS cho Modal Popup Khuyến mãi
+---- */
+
+/* Sử dụng lại CSS của .modal-overlay, .modal-content, .modal-close-btn đã có */
+
+/* Cụ thể cho form khuyến mãi nếu cần */
+#promo-modal .modal-content {
+    max-width: 700px; /* Có thể rộng hơn modal biến thể */
+}
+
+#promo-modal form {
+    margin-top: 20px;
+}
+
+/* Đảm bảo label và input trong modal hiển thị đúng */
+#promo-modal .form-group label {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+#promo-modal .form-group input,
+#promo-modal .form-group select,
+#promo-modal .form-group textarea {
+    padding: 10px; /* Giảm padding một chút */
+}
+
+/* Căn giữa nút trong modal */
+#promo-modal .form-actions {
+    justify-content: center;
 }

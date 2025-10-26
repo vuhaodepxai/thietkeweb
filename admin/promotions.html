@@ -5,84 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Khuyến mãi - Admin</title>
     <link rel="stylesheet" href="admin-style.css">
-</head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    </head>
 <body>
 
     <div style="display: flex;">
-
         <div id="admin-sidebar-placeholder"></div>
 
         <main class="admin-main-content">
             
             <header>
                 <h1>Quản lý Khuyến mãi (AD-06)</h1>
-                <a href="#" class="btn btn-primary" onclick="alert('Chức năng này cần tạo form khuyến mãi riêng (tương tự form sản phẩm)')">Tạo Khuyến mãi Mới</a>
+                <a href="#" class="btn btn-primary" onclick="alert('Chức năng này cần tạo form khuyến mãi riêng (tương tự form sản phẩm)')">
+                    <i class="fas fa-plus"></i> Tạo Khuyến mãi Mới
+                </a>
             </header>
 
             <div class="card">
                 <div class="card-header">
                     <h2>Danh sách Mã giảm giá / Chương trình</h2>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mã (Coupon)</th>
-                            <th>Mô tả</th>
-                            <th>Loại/Giá trị</th>
-                            <th>Bắt đầu</th>
-                            <th>Kết thúc</th>
-                            <th>Trạng thái</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="promo-table-body">
-                        </tbody>
-                </table>
+                <div class="table-wrapper"> <table>
+                        <thead>
+                            <tr>
+                                <th>Mã (Coupon)</th>
+                                <th>Mô tả</th>
+                                <th>Loại/Giá trị</th>
+                                <th>Bắt đầu</th>
+                                <th>Kết thúc</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="promo-table-body">
+                            </tbody>
+                    </table>
+                </div>
             </div>
         </main>
     
-    </div> <script src="admin-layout.js"></script>
-    <script src="admin-mock-db.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            loadPromotions();
-        });
+    </div>
 
-        function loadPromotions() {
-            const promotions = db.getPromotions();
-            const tableBody = document.getElementById('promo-table-body');
-            tableBody.innerHTML = '';
+   </main>
+    </div>
 
-            promotions.forEach(promo => {
-                const row = document.createElement('tr');
-                row.id = `promo-row-${promo.id}`;
+    <div id="promo-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close-btn" onclick="closePromoModal()">×</button>
+            <h2 id="modal-promo-title">Tạo Khuyến mãi Mới</h2>
+            
+            <form id="promo-form">
+                <input type="hidden" id="promo-id" value="new"> 
                 
-                const valueFormatted = promo.type === '%' ? `${promo.value}%` : new Intl.NumberFormat('vi-VN').format(promo.value) + 'đ';
-                const statusText = promo.status === 'active' ? '<span style="color: green;">Đang chạy</span>' : '<span style="color: grey;">Hết hạn</span>';
+                <div class="form-group">
+                    <label for="promo-code">Mã Khuyến mãi (Coupon Code)</label>
+                    <input type="text" id="promo-code" required placeholder="Ví dụ: SALE10, FREESHIP">
+                </div>
+                
+                <div class="form-group">
+                    <label for="promo-description">Mô tả</label>
+                    <textarea id="promo-description" rows="3" placeholder="Ví dụ: Giảm 10% tổng đơn hàng, Miễn phí vận chuyển tối đa 30k"></textarea>
+                </div>
 
-                row.innerHTML = `
-                    <td>${promo.code}</td>
-                    <td>${promo.description}</td>
-                    <td>${valueFormatted}</td>
-                    <td>${promo.start}</td>
-                    <td>${promo.end}</td>
-                    <td>${statusText}</td>
-                    <td class="action-buttons">
-                        <button class="btn btn-success">Sửa</button>
-                        <button class="btn btn-accent" onclick="deletePromotion('${promo.id}', '${promo.code}')">Xóa</button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-        
-        function deletePromotion(id, code) {
-            if (confirm(`Bạn có chắc muốn xóa mã "${code}"?`)) {
-                db.deletePromotion(id);
-                loadPromotions();
-            }
-        }
-    </script>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                    <div class="form-group">
+                        <label for="promo-type">Loại Giảm</label>
+                        <select id="promo-type" required>
+                            <option value="%">Phần trăm (%)</option>
+                            <option value="vnd">Số tiền cố định (VNĐ)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="promo-value">Giá trị</label>
+                        <input type="number" id="promo-value" required placeholder="Ví dụ: 10 (cho %), 30000 (cho VNĐ)">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="promo-start">Ngày Bắt đầu</label>
+                        <input type="date" id="promo-start">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="promo-end">Ngày Kết thúc</label>
+                        <input type="date" id="promo-end">
+                    </div>
+                     <div class="form-group">
+                        <label for="promo-status">Trạng thái</label>
+                        <select id="promo-status" required>
+                            <option value="active">Đang chạy (Active)</option>
+                            <option value="inactive">Tạm dừng (Inactive)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu Khuyến mãi
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closePromoModal()">
+                        <i class="fas fa-times"></i> Hủy bỏ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="admin-layout.js" defer></script>
+    <script src="admin-mock-db.js" defer></script>
+    <script src="promotions.js" defer></script>
 </body>
 </html>

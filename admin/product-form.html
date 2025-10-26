@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form Sản phẩm - Admin</title>
     <link rel="stylesheet" href="admin-style.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
 
@@ -20,6 +22,7 @@
 
             <form id="product-form">
                 <div class="card">
+                    
                     <div class="form-layout-grid">
                         
                         <div class="form-col-main">
@@ -43,14 +46,14 @@
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="product-stock">Tồn kho (Gốc) [AD-11]</label>
+                                    <label for="product-stock">Tồn kho (Gốc)</label>
                                     <input type="number" id="product-stock" required>
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="product-category">Danh mục [AD-03]</label>
+                                    <label for="product-category">Danh mục</label>
                                     <select id="product-category" required>
-                                        <option value="">-- Đang tải... --</option>
+                                        <option value="">-- Chọn danh mục --</option>
                                     </select>
                                 </div>
                             </div>
@@ -67,25 +70,31 @@
                             </div>
 
                             <fieldset class="variants-fieldset">
-                                <legend>Quản lý Biến thể [AD-12]</legend>
+                                <legend>Quản lý Biến thể</legend>
                                 
                                 <div class="variant-item-header" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; font-weight: bold; font-size: 14px; margin-bottom: 5px;">
-                                    <span style="display: block; @media (max-width: 768px) { display: none; }">Tên</span>
-                                    <span style="display: block; @media (max-width: 768px) { display: none; }">Giá trị</span>
-                                    <span style="display: block; @media (max-width: 768px) { display: none; }">Giá (VNĐ)</span>
-                                    <span style="display: block; @media (max-width: 768px) { display: none; }">Tồn kho</span>
+                                    <span>Tên</span>
+                                    <span>Giá trị</span>
+                                    <span>Giá (VNĐ)</span>
+                                    <span>Tồn kho</span>
                                 </div>
 
                                 <div id="variants-container">
                                     </div>
                                 
-                                <button type="button" id="add-variant-btn" class="btn btn-secondary" style="margin-top: 10px;">Thêm biến thể</button>
+                                <button type="button" id="add-variant-btn" class="btn btn-secondary" style="margin-top: 10px;">
+                                    <i class="fas fa-plus"></i> Thêm biến thể
+                                </button>
                             </fieldset>
                         </div>
 
-                    </div> </div> <div class="form-actions" style="margin-top: -10px;">
-                    <button type="submit" class="btn btn-primary">Lưu Sản phẩm</button>
-                    <a href="products.html" class="btn btn-secondary">Hủy bỏ</a>
+                    </div> </div> <div class="form-actions" style="margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu Sản phẩm
+                    </button>
+                    <a href="products.html" class="btn btn-accent">
+                        <i class="fas fa-times"></i> Hủy bỏ
+                    </a>
                 </div>
             </form>
         </main>
